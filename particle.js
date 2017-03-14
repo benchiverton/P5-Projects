@@ -20,7 +20,7 @@ function draw() {
 }
 
 function Particle() {
-    this.pos = createVector(random(5, width-5), random(5, height-5));
+    this.pos = createVector(random(5, width - 5), random(5, height - 5));
     this.vel = createVector(0, 0, 0);
     this.r = 7;
 
@@ -36,19 +36,17 @@ function Particle() {
     }
 
     //Calculates the 'updated' velocity then moves the particle.
-    this.update = function (x, y) {
-
-        var focus = createVector(x, y);
+    this.update = function (focus) {
 
         var d = focus.dist(this.pos);
 
-        var dir = createVector(focus.x - this.pos.x, focus.y - this.pos.y).div(d);
+        var dir = (focus.copy().sub(this.pos)).div(d);
 
         if (dir.mag() < 5) {
             dir.setMag(5);
         }
 
-        this.vel.add(dir.mult(2.5));
+        this.vel.add((dir.mult(2.5)));
 
         this.vel.limit(400);
 
@@ -91,6 +89,15 @@ function Particle() {
 
     }
 
+    //Makes the parcicles 'scatter' away from the focus.
+    this.scatter = function (focus) {
+
+        this.vel = this.pos.copy().sub(focus);
+
+        this.vel.setMag(30000 / this.vel.mag());
+
+    }
+
 }
 
 //Where n = amount of particles in the 'universe'.
@@ -115,7 +122,7 @@ function Universe(n) {
 
             var p_ = this.particles[p];
 
-            p_.update(this.focus.x, this.focus.y);
+            p_.update(this.focus);
 
         }
 
@@ -131,6 +138,16 @@ function Universe(n) {
 
     }
 
+    //Scatters each particle in the 'unicerse'.
+    this.scatter = function () {
+
+        for (var p in this.particles) {
+            var p_ = this.particles[p];
+            p_.scatter(this.focus);
+        }
+
+    }
+
 }
 
 //Sets up the canvas, framerate and 'stroke'.
@@ -140,6 +157,13 @@ function initialize() {
     frameRate(fr);
     strokeWeight(.1);
     stroke(255);
+}
+
+//When the mouse is clicked within the window, it scatters the particles.
+function mouseClicked() {
+    if (s == true && 0 < mouseX && mouseX < width && 0 < mouseY && mouseY < height) {
+        u.scatter();
+    }
 }
 
 //Changes the value of s which will allow/prohibit the universe from updating.
